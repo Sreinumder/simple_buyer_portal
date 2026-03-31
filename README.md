@@ -7,10 +7,6 @@ Stack:
 - Frontend: React + TypeScript + Vite (package manager: pnpm)
 - Backend: FastAPI + SQLAlchemy + SQLite (Python virtual environment)
 
-If you want deep implementation rationale (why each command, why pnpm, why each backend package), read:
-
-- `documentation.md`
-
 ## Project Goals
 
 This app is designed to satisfy these requirements:
