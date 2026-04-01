@@ -2,10 +2,14 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
+from app.models import UserRole
+
 
 class UserRegisterRequest(BaseModel):
     name: str = Field(min_length=2, max_length=100)
     email: EmailStr
+    phone_number: str = Field(min_length=7, max_length=20)
+    role: UserRole
     password: str = Field(min_length=8, max_length=128)
 
 
@@ -20,7 +24,8 @@ class UserOut(BaseModel):
     id: int
     name: str
     email: EmailStr
-    role: str
+    phone_number: str
+    role: UserRole
 
 
 class TokenResponse(BaseModel):
@@ -31,6 +36,8 @@ class TokenResponse(BaseModel):
 class PropertyCreateRequest(BaseModel):
     name: str = Field(min_length=2, max_length=200)
     description: str | None = Field(default=None, max_length=2000)
+    location: str = Field(min_length=2, max_length=255)
+    price: float = Field(gt=0)
 
 
 class PropertyOut(BaseModel):
@@ -39,6 +46,9 @@ class PropertyOut(BaseModel):
     id: int
     name: str
     description: str | None
+    location: str
+    price: float
+    created_by_id: int
     created_at: datetime
 
 

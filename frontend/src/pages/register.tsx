@@ -9,6 +9,8 @@ export default function RegisterPage() {
     const navigate = useNavigate()
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
+    const [phoneNumber, setPhoneNumber] = useState('')
+    const [role, setRole] = useState<'buyer' | 'seller'>('buyer')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
@@ -19,7 +21,7 @@ export default function RegisterPage() {
         setLoading(true)
 
         try {
-            await register({ name, email, password })
+            await register({ name, email, phone_number: phoneNumber, role, password })
             navigate('/login?registered=1')
         } catch (err) {
             setError((err as ApiError).message)
@@ -31,7 +33,7 @@ export default function RegisterPage() {
     return (
         <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4 py-10">
             <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Register</h1>
-            <p className="mt-2 text-sm text-slate-600">Create your buyer account.</p>
+            <p className="mt-2 text-sm text-slate-600">Create your buyer or seller account.</p>
 
             {error && (
                 <p className="mt-4 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
@@ -60,6 +62,30 @@ export default function RegisterPage() {
                         onChange={(event) => setEmail(event.target.value)}
                         className="w-full rounded-md border border-slate-300 px-3 py-2 outline-none ring-blue-500 focus:ring"
                     />
+                </label>
+
+                <label className="block">
+                    <span className="mb-1 block text-sm text-slate-700">Phone number</span>
+                    <input
+                        type="tel"
+                        required
+                        value={phoneNumber}
+                        onChange={(event) => setPhoneNumber(event.target.value)}
+                        className="w-full rounded-md border border-slate-300 px-3 py-2 outline-none ring-blue-500 focus:ring"
+                    />
+                </label>
+
+                <label className="block">
+                    <span className="mb-1 block text-sm text-slate-700">Role</span>
+                    <select
+                        required
+                        value={role}
+                        onChange={(event) => setRole(event.target.value as 'buyer' | 'seller')}
+                        className="w-full rounded-md border border-slate-300 px-3 py-2 outline-none ring-blue-500 focus:ring"
+                    >
+                        <option value="buyer">Buyer</option>
+                        <option value="seller">Seller</option>
+                    </select>
                 </label>
 
                 <label className="block">

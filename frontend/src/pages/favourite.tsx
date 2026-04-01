@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
-import { clearToken, listFavouriteProperties } from '../lib/api'
+import { clearToken, getMe, listFavouriteProperties } from '../lib/api'
 import type { ApiError, Property } from '../lib/api'
 
 export default function FavouritePage() {
@@ -15,6 +15,12 @@ export default function FavouritePage() {
             setLoading(true)
             setError('')
             try {
+                const me = await getMe()
+                if (me.role !== 'buyer') {
+                    setError('Only buyers can view favourites.')
+                    setProperties([])
+                    return
+                }
                 const data = await listFavouriteProperties()
                 setProperties(data)
             } catch (err) {
@@ -52,15 +58,21 @@ export default function FavouritePage() {
             ) : properties.length === 0 ? (
                 <p className="text-sm text-slate-600">You have not favourited any properties yet.</p>
             ) : (
-                <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {properties.map((property) => (
                         <article
                             key={property.id}
-                            className="mb-4 break-inside-avoid rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                            className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
                         >
                             <h2 className="text-lg font-semibold text-slate-900">{property.name}</h2>
                             <p className="mt-2 text-sm leading-6 text-slate-600">
                                 {property.description || 'No description provided.'}
+                            </p>
+                            <p className="mt-2 text-sm text-slate-700">
+                                <span className="font-medium">Location:</span> {property.location}
+                            </p>
+                            <p className="mt-1 text-sm text-slate-700">
+                                <span className="font-medium">Price:</span> ${property.price.toLocaleString()}
                             </p>
                         </article>
                     ))}

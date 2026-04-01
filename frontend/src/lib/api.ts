@@ -12,13 +12,17 @@ export type User = {
   id: number
   name: string
   email: string
-  role: string
+  phone_number: string
+  role: 'buyer' | 'seller'
 }
 
 export type Property = {
   id: number
   name: string
   description: string | null
+  location: string
+  price: number
+  created_by_id: number
   created_at: string
 }
 
@@ -126,7 +130,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await response.json()) as T
 }
 
-export function register(payload: { name: string; email: string; password: string }) {
+export function register(payload: {
+  name: string
+  email: string
+  phone_number: string
+  role: 'buyer' | 'seller'
+  password: string
+}) {
   return request<User>('/auth/register', {
     method: 'POST',
     body: JSON.stringify(payload),
@@ -150,7 +160,12 @@ export function listProperties() {
   return request<Property[]>('/properties')
 }
 
-export function createProperty(payload: { name: string; description?: string }) {
+export function createProperty(payload: {
+  name: string
+  description?: string
+  location: string
+  price: number
+}) {
   return request<Property>('/properties', {
     method: 'POST',
     body: JSON.stringify(payload),

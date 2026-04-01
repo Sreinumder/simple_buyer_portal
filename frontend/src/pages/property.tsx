@@ -26,7 +26,9 @@ export default function PropertyPage() {
         setLoading(true)
         setError('')
         try {
-            const [me, props, favs] = await Promise.all([getMe(), listProperties(), listFavourites()])
+            const me = await getMe()
+            const props = await listProperties()
+            const favs = me.role === 'buyer' ? await listFavourites() : []
             setUser(me)
             setProperties(props)
             setFavourites(favs)
@@ -82,12 +84,16 @@ export default function PropertyPage() {
                         )}
                     </div>
                     <nav className="flex items-center gap-2 text-sm">
-                        <Link className="rounded-md border border-slate-300 px-3 py-2 hover:bg-slate-100" to="/new_property">
-                            New property
-                        </Link>
-                        <Link className="rounded-md border border-slate-300 px-3 py-2 hover:bg-slate-100" to="/favourite">
-                            My favourites
-                        </Link>
+                        {user?.role === 'seller' && (
+                            <Link className="rounded-md border border-slate-300 px-3 py-2 hover:bg-slate-100" to="/new_property">
+                                New property
+                            </Link>
+                        )}
+                        {user?.role === 'buyer' && (
+                            <Link className="rounded-md border border-slate-300 px-3 py-2 hover:bg-slate-100" to="/favourite">
+                                My favourites
+                            </Link>
+                        )}
                         <button
                             onClick={logout}
                             className="rounded-md bg-slate-900 px-3 py-2 font-medium text-white hover:bg-black"
@@ -108,7 +114,11 @@ export default function PropertyPage() {
                 {loading ? (
                     <p className="text-sm text-slate-600">Loading properties...</p>
                 ) : properties.length === 0 ? (
-                    <p className="text-sm text-slate-600">No properties found. Create your first property.</p>
+                    <p className="text-sm text-slate-600">
+                        {user?.role === 'seller'
+                            ? 'No properties found. Create your first property.'
+                            : 'No properties available right now.'}
+                    </p>
                 ) : (
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {properties.map((property) => {
@@ -127,21 +137,33 @@ export default function PropertyPage() {
                                     <p className="mt-2 mb-4 text-sm leading-6 text-slate-600">
                                         {property.description || 'No description provided.'}
                                     </p>
+                                    <p className="mb-1 text-sm text-slate-700">
+                                        <span className="font-medium">Location:</span> {property.location}
+                                    </p>
+                                    <p className="mb-4 text-sm text-slate-700">
+                                        <span className="font-medium">Price:</span> ${property.price.toLocaleString()}
+                                    </p>
 
-                                    <button
-                                        onClick={() => void toggleFavourite(property.id)}
-                                        disabled={savingPropertyId === property.id}
-                                        className={`mt-auto w-full rounded-md px-3 py-2 text-sm font-medium transition ${isFavourite
-                                            ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
-                                            : 'bg-slate-900 text-white hover:bg-black'
-                                            } disabled:opacity-60`}
-                                    >
-                                        {savingPropertyId === property.id
-                                            ? 'Saving...'
-                                            : isFavourite
-                                                ? 'Remove from favourites'
-                                                : 'Add to favourites'}
-                                    </button>
+                                    {user?.role === 'buyer' ? (
+                                        <button
+                                            onClick={() => void toggleFavourite(property.id)}
+                                            disabled={savingPropertyId === property.id}
+                                            className={`mt-auto w-full rounded-md px-3 py-2 text-sm font-medium transition ${isFavourite
+                                                ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                                                : 'bg-slate-900 text-white hover:bg-black'
+                                                } disabled:opacity-60`}
+                                        >
+                                            {savingPropertyId === property.id
+                                                ? 'Saving...'
+                                                : isFavourite
+                                                    ? 'Remove from favourites'
+                                                    : 'Add to favourites'}
+                                        </button>
+                                    ) : (
+                                        <p className="mt-auto rounded-md bg-slate-100 px-3 py-2 text-center text-sm text-slate-600">
+                                            Shared by you
+                                        </p>
+                                    )}
                                 </article>
                             )
                         })}

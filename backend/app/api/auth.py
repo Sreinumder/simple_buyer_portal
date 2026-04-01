@@ -58,8 +58,9 @@ def register(payload: UserRegisterRequest, db: Session = Depends(get_db)) -> Use
     user = User(
         name=payload.name,
         email=payload.email,
+        phone_number=payload.phone_number,
         hashed_password=hash_password(payload.password),
-        role="buyer",
+        role=payload.role,
     )
     db.add(user)
     db.commit()

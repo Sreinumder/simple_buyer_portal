@@ -3,10 +3,18 @@ from sqlalchemy.orm import Session
 
 from app.api.auth import get_current_user
 from app.database import get_db
-from app.models import Favourite, Property, User
+from app.models import Favourite, Property, User, UserRole
 from app.schemas import FavouriteOut, PropertyOut
 
 router = APIRouter(prefix="/favourites", tags=["favourites"])
+
+
+def ensure_buyer(current_user: User) -> None:
+    if current_user.role != UserRole.BUYER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only buyers can use favourites",
+        )
 
 
 @router.get("", response_model=list[FavouriteOut])
@@ -14,6 +22,7 @@ def list_my_favourites(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> list[Favourite]:
+    ensure_buyer(current_user)
     return (
         db.query(Favourite)
         .filter(Favourite.user_id == current_user.id)
@@ -28,6 +37,8 @@ def add_favourite(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Favourite:
+    ensure_buyer(current_user)
+
     prop = db.query(Property).filter(Property.id == property_id).first()
     if not prop:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found")
@@ -53,6 +64,8 @@ def remove_favourite(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Response:
+    ensure_buyer(current_user)
+
     fav = (
         db.query(Favourite)
         .filter(Favourite.user_id == current_user.id, Favourite.property_id == property_id)
@@ -71,6 +84,8 @@ def list_my_favourited_properties(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> list[Property]:
+    ensure_buyer(current_user)
+
     return (
         db.query(Property)
         .join(Favourite, Favourite.property_id == Property.id)

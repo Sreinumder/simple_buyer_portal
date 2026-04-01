@@ -33,7 +33,7 @@ export default function LoginPage() {
     return (
         <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4 py-10">
             <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Login</h1>
-            <p className="mt-2 text-sm text-slate-600">Use your buyer account to continue.</p>
+            <p className="mt-2 text-sm text-slate-600">Use your buyer or seller account to continue.</p>
 
             {justRegistered && (
                 <p className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
