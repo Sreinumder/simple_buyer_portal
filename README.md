@@ -7,7 +7,7 @@ Stack:
 - Frontend: React + TypeScript + Vite (package manager: pnpm)
 - Backend: FastAPI + SQLAlchemy + SQLite (Python virtual environment)
 
-## Project Goals
+<!-- ## Project Goals
 
 This app is designed to satisfy these requirements:
 
@@ -15,22 +15,7 @@ This app is designed to satisfy these requirements:
 2. Authenticated buyer dashboard.
 3. Per-user favourites list (add/remove properties).
 4. User isolation so users can only access their own favourites.
-5. Basic validation and error handling.
-
-## Current Project Structure
-
-```text
-simple_buyer_portal/
-  backend/
-    app/
-      api/
-      main.py
-    requirements.txt
-    .env.example
-  frontend/
-    src/
-    package.json
-```
+5. Basic validation and error handling. -->
 
 ## Prerequisites
 
@@ -41,7 +26,7 @@ Before you begin, ensure these are installed on your system:
 - **pnpm** (install globally: `npm install -g pnpm`)
 - **sqlite3** (usually bundled with Python/OS)
 
-**Verify your installation:**
+<!-- **Verify your installation:**
 
 ```bash
 python3 --version   # Should be 3.8 or higher
@@ -49,21 +34,7 @@ pip --version       # Should be present
 node --version      # Should be 18+
 npm --version       # Should be 8+
 pnpm --version      # Should be 8+
-```
-
-If any are missing, install them for your OS:
-
-- **macOS:** `brew install python3 node`
-- **Ubuntu/Debian:** `sudo apt install python3 python3-pip nodejs`
-- **Arch Linux:** `sudo pacman -S python nodejs`
-
-Then install pnpm globally:
-
-```bash
-npm install -g pnpm
-```
-
----
+``` -->
 
 ## Quick Start
 
@@ -118,20 +89,14 @@ ACCESS_TOKEN_EXPIRE_MINUTES=60
 DATABASE_URL=sqlite:///./buyer_portal.db
 ```
 
-## Development Workflow
+## Example End-to-End Flow (Target)
 
-1. Start backend first.
-2. Start frontend.
-3. Implement backend APIs in small vertical slices:
-
-- register
-- login
-- get current user
-- list favourites
-- add favourite
-- remove favourite
-
-4. Integrate frontend UI after each backend slice.
+1. Sign up with name, email, password.
+2. Login with email/password.
+3. Open dashboard.
+4. Like a property.
+5. Verify property appears in "My Favourites".
+6. Unlike property and verify removal.
 
 ## Suggested Submission Checklist
 
@@ -143,18 +108,10 @@ DATABASE_URL=sqlite:///./buyer_portal.db
 6. Error messages are readable and actionable.
 7. README includes run instructions and sample flow.
 
-## Example End-to-End Flow (Target)
-
-1. Sign up with name, email, password.
-2. Login with email/password.
-3. Open dashboard.
-4. Like a property.
-5. Verify property appears in "My Favourites".
-6. Unlike property and verify removal.
-
+<!--
 ## Notes
 
 - Do not store raw passwords.
 - Use hashed passwords (`passlib` + `bcrypt`).
 - Keep auth checks on server side (frontend checks alone are not enough).
-- Scope all favourites queries by authenticated user id.
+- Scope all favourites queries by authenticated user id. -->
