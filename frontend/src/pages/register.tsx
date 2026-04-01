@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 
 import { register } from '../lib/api'
 import type { ApiError } from '../lib/api'
@@ -22,9 +23,12 @@ export default function RegisterPage() {
 
         try {
             await register({ name, email, phone_number: phoneNumber, role, password })
+            toast.success('Account created successfully')
             navigate('/login?registered=1')
         } catch (err) {
-            setError((err as ApiError).message)
+            const message = (err as ApiError).message
+            setError(message)
+            toast.error(message)
         } finally {
             setLoading(false)
         }

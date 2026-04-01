@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import toast from 'react-hot-toast'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { clearToken, getMe, listFavouriteProperties } from '../lib/api'
@@ -17,7 +18,9 @@ export default function FavouritePage() {
             try {
                 const me = await getMe()
                 if (me.role !== 'buyer') {
-                    setError('Only buyers can view favourites.')
+                    const message = 'Only buyers can view favourites.'
+                    setError(message)
+                    toast.error(message)
                     setProperties([])
                     return
                 }
@@ -26,6 +29,7 @@ export default function FavouritePage() {
             } catch (err) {
                 const apiError = err as ApiError
                 setError(apiError.message)
+                toast.error(apiError.message)
                 if (apiError.status === 401) {
                     clearToken()
                     navigate('/login', { replace: true })

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import toast from 'react-hot-toast'
 import { Link, useNavigate } from 'react-router-dom'
 
 import {
@@ -35,6 +36,7 @@ export default function PropertyPage() {
         } catch (err) {
             const apiError = err as ApiError
             setError(apiError.message)
+            toast.error(apiError.message)
             if (apiError.status === 401) {
                 clearToken()
                 navigate('/login', { replace: true })
@@ -48,25 +50,30 @@ export default function PropertyPage() {
         void loadData()
     }, [loadData])
 
-    const toggleFavourite = async (propertyId: number) => {
+    const toggleFavourite = async (propertyId: number, propertyName: string) => {
         setSavingPropertyId(propertyId)
         setError('')
         try {
             if (favouriteIds.has(propertyId)) {
                 await removeFavourite(propertyId)
+                toast.success(`Removed "${propertyName}" from favourites`)
             } else {
                 await addFavourite(propertyId)
+                toast.success(`Added "${propertyName}" to favourites`)
             }
             const favs = await listFavourites()
             setFavourites(favs)
         } catch (err) {
-            setError((err as ApiError).message)
+            const message = (err as ApiError).message
+            setError(message)
+            toast.error(message)
         } finally {
             setSavingPropertyId(null)
         }
     }
 
     const logout = () => {
+        toast.success('Logged out successfully')
         clearToken()
         navigate('/login', { replace: true })
     }
@@ -146,7 +153,7 @@ export default function PropertyPage() {
 
                                     {user?.role === 'buyer' ? (
                                         <button
-                                            onClick={() => void toggleFavourite(property.id)}
+                                            onClick={() => void toggleFavourite(property.id, property.name)}
                                             disabled={savingPropertyId === property.id}
                                             className={`mt-auto w-full rounded-md px-3 py-2 text-sm font-medium transition ${isFavourite
                                                 ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'

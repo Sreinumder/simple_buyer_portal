@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 
 import { login } from '../lib/api'
 import type { ApiError } from '../lib/api'
@@ -20,9 +21,12 @@ export default function LoginPage() {
 
         try {
             await login({ email, password })
+            toast.success('Logged in successfully')
             navigate('/properties', { replace: true })
         } catch (err) {
-            setError((err as ApiError).message)
+            const message = (err as ApiError).message
+            setError(message)
+            toast.error(message)
         } finally {
             setLoading(false)
         }

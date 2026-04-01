@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 
 import { createProperty, getMe } from '../lib/api'
 import type { ApiError, User } from '../lib/api'
@@ -43,9 +44,12 @@ export default function NewPropertyPage() {
                 location,
                 price: Number(price),
             })
+            toast.success(`Created ${name} property successfully`)
             navigate('/properties')
         } catch (err) {
-            setError((err as ApiError).message)
+            const message = (err as ApiError).message
+            setError(message)
+            toast.error(message)
         } finally {
             setLoading(false)
         }
