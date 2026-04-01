@@ -1,8 +1,6 @@
-# Simple Buyer Portal - Take-Home Assessment
+# Simple Buyer Portal
 
-This project is a minimal full-stack implementation for the TechKraft Junior Full-Stack Engineer take-home assignment.
-
-Stack:
+This project is a minimal full-stack implementation to understand fullstack development with:
 
 - Frontend: React + TypeScript + Vite (package manager: pnpm)
 - Backend: FastAPI + SQLAlchemy + SQLite (Python virtual environment)
@@ -98,7 +96,7 @@ DATABASE_URL=sqlite:///./buyer_portal.db
 5. Verify property appears in "My Favourites".
 6. Unlike property and verify removal.
 
-## Suggested Submission Checklist
+## Checklist for secure Fullstack Product
 
 1. Registration works and prevents duplicate email.
 2. Login returns token/session and rejects wrong password.
