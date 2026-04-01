@@ -32,35 +32,81 @@ simple_buyer_portal/
     package.json
 ```
 
-## Quick Start
+## Prerequisites
 
-### 1. Frontend
+Before you begin, ensure these are installed on your system:
+
+- **Python 3.8+** with `pip`
+- **Node.js 18+** with `npm`
+- **pnpm** (install globally: `npm install -g pnpm`)
+- **sqlite3** (usually bundled with Python/OS)
+
+**Verify your installation:**
 
 ```bash
-cd frontend
-pnpm install
-pnpm dev
+python3 --version   # Should be 3.8 or higher
+pip --version       # Should be present
+node --version      # Should be 18+
+npm --version       # Should be 8+
+pnpm --version      # Should be 8+
 ```
 
-Frontend runs at:
+If any are missing, install them for your OS:
 
-- http://localhost:5173
+- **macOS:** `brew install python3 node`
+- **Ubuntu/Debian:** `sudo apt install python3 python3-pip nodejs`
+- **Arch Linux:** `sudo pacman -S python nodejs`
 
-### 2. Backend
+Then install pnpm globally:
 
 ```bash
-python3 -m venv backend/.venv
-source backend/.venv/bin/activate
-pip install -r backend/requirements.txt
+npm install -g pnpm
+```
+
+---
+
+## Quick Start
+
+### 1. Backend Setup
+
+```bash
 cd backend
+python3 -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+### 2. Start Backend Server
+
+```bash
+cd backend
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 uvicorn app.main:app --reload --port 8000
 ```
 
 Backend runs at:
 
-- http://127.0.0.1:8000
-- health check: http://127.0.0.1:8000/api/health
-- interactive API docs: http://127.0.0.1:8000/docs
+- API: http://127.0.0.1:8000
+- Health check: http://127.0.0.1:8000/api/health
+- Interactive docs: http://127.0.0.1:8000/docs
+
+**Database note:** The SQLite database is automatically created on first startup at `backend/app/buyer_portal.db`. No manual setup needed.
+
+### 3. Frontend Setup (in a new terminal)
+
+```bash
+cd frontend
+pnpm install
+```
+
+### 4. Start Frontend Dev Server
+
+```bash
+cd frontend
+pnpm dev
+```
+
+Frontend runs at: http://localhost:5173
 
 ## Environment Variables
 
