@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -24,11 +25,11 @@ def get_current_user(
     token = credentials.credentials
     try:
         payload = decode_access_token(token)
-    except TokenDecodeError:
+    except TokenDecodeError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",
-        )
+        ) from exc
 
     user_email = payload.get("sub")
     if not user_email:
@@ -63,7 +64,17 @@ def register(payload: UserRegisterRequest, db: Session = Depends(get_db)) -> Use
         role=payload.role,
     )
     db.add(user)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        # Handles the race where two requests register the same email between
+        # the check above and the insert.
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Email already registered",
+        ) from exc
+
     db.refresh(user)
     return user
 
