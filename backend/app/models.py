@@ -1,12 +1,14 @@
-from enum import Enum
+from enum import StrEnum
 
-from sqlalchemy import Column, DateTime, Enum as SAEnum, Float, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+
 from app.database import Base
 
 
-class UserRole(str, Enum):
+class UserRole(StrEnum):
     BUYER = "buyer"
     SELLER = "seller"
 
