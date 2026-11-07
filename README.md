@@ -1,5 +1,7 @@
 # Buyer Portal
 
+[![CI](https://github.com/Sreinumder/simple_buyer_portal/actions/workflows/ci.yml/badge.svg)](https://github.com/Sreinumder/simple_buyer_portal/actions/workflows/ci.yml)
+
 A full-stack real-estate portal with JWT authentication, buyer and seller roles,
 property listings, and per-user favourites.
 
