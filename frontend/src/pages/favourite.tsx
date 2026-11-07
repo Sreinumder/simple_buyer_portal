@@ -1,15 +1,24 @@
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
-import { clearToken, getMe, listFavouriteProperties } from '../lib/api'
-import type { ApiError, Property } from '../lib/api'
+import AppHeader from '../components/AppHeader'
+import PropertyCard from '../components/PropertyCard'
+import {
+    clearToken,
+    getMe,
+    listFavouriteProperties,
+    removeFavourite,
+} from '../lib/api'
+import type { ApiError, Property, User } from '../lib/api'
 
 export default function FavouritePage() {
     const navigate = useNavigate()
+    const [user, setUser] = useState<User | null>(null)
     const [properties, setProperties] = useState<Property[]>([])
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(true)
+    const [removingId, setRemovingId] = useState<number | null>(null)
 
     useEffect(() => {
         const load = async () => {
@@ -18,18 +27,14 @@ export default function FavouritePage() {
             try {
                 const me = await getMe()
                 if (me.role !== 'buyer') {
-                    const message = 'Only buyers can view favourites.'
-                    setError(message)
-                    toast.error(message)
-                    setProperties([])
+                    setError('Only buyers can view favourites.')
                     return
                 }
-                const data = await listFavouriteProperties()
-                setProperties(data)
+                setUser(me)
+                setProperties(await listFavouriteProperties())
             } catch (err) {
                 const apiError = err as ApiError
                 setError(apiError.message)
-                toast.error(apiError.message)
                 if (apiError.status === 401) {
                     clearToken()
                     navigate('/login', { replace: true })
@@ -42,46 +47,60 @@ export default function FavouritePage() {
         void load()
     }, [navigate])
 
+    const remove = async (property: Property) => {
+        setRemovingId(property.id)
+        try {
+            await removeFavourite(property.id)
+            setProperties((current) => current.filter((item) => item.id !== property.id))
+            toast.success(`Removed "${property.name}"`)
+        } catch (err) {
+            toast.error((err as ApiError).message)
+        } finally {
+            setRemovingId(null)
+        }
+    }
+
     return (
-        <main className="mx-auto min-h-screen w-full max-w-6xl px-4 py-6">
-            <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-2xl font-semibold text-slate-900">My favourites</h1>
-                <Link to="/properties" className="rounded-md border border-slate-300 px-3 py-2 text-sm hover:bg-slate-100">
-                    Back to properties
-                </Link>
-            </div>
+        <main className="min-h-screen bg-slate-50">
+            <AppHeader user={user} current="favourite" />
 
-            {error && (
-                <p className="mb-4 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-                    {error}
-                </p>
-            )}
+            <section className="mx-auto w-full max-w-6xl px-4 py-6">
+                <h1 className="mb-4 text-2xl font-semibold text-slate-900">My favourites</h1>
 
-            {loading ? (
-                <p className="text-sm text-slate-600">Loading favourites...</p>
-            ) : properties.length === 0 ? (
-                <p className="text-sm text-slate-600">You have not favourited any properties yet.</p>
-            ) : (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {properties.map((property) => (
-                        <article
-                            key={property.id}
-                            className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
-                        >
-                            <h2 className="text-lg font-semibold text-slate-900">{property.name}</h2>
-                            <p className="mt-2 text-sm leading-6 text-slate-600">
-                                {property.description || 'No description provided.'}
-                            </p>
-                            <p className="mt-2 text-sm text-slate-700">
-                                <span className="font-medium">Location:</span> {property.location}
-                            </p>
-                            <p className="mt-1 text-sm text-slate-700">
-                                <span className="font-medium">Price:</span> ${property.price.toLocaleString()}
-                            </p>
-                        </article>
-                    ))}
-                </div>
-            )}
+                {error && (
+                    <p className="mb-4 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                        {error}
+                    </p>
+                )}
+
+                {loading ? (
+                    <p className="text-sm text-slate-600">Loading favourites...</p>
+                ) : properties.length === 0 ? (
+                    <p className="text-sm text-slate-600">
+                        You have not favourited any properties yet.
+                    </p>
+                ) : (
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {properties.map((property) => (
+                            <PropertyCard
+                                key={property.id}
+                                property={property}
+                                footer={
+                                    <button
+                                        onClick={() => void remove(property)}
+                                        disabled={removingId === property.id}
+                                        className="w-full rounded-md border border-rose-300 px-3 py-2 text-sm text-rose-700 hover:bg-rose-50 disabled:opacity-60"
+                                    >
+                                        {removingId === property.id
+                                            ? 'Removing...'
+                                            : 'Remove from favourites'}
+                                    </button>
+                                }
+                            />
+                        ))}
+                    </div>
+                )}
+            </section>
         </main>
     )
 }

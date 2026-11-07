@@ -22,8 +22,17 @@ export type Property = {
   description: string | null
   location: string
   price: number
+  image_url: string | null
   created_by_id: number
   created_at: string
+}
+
+export type PropertyInput = {
+  name: string
+  description?: string
+  location: string
+  price: number
+  image_url?: string
 }
 
 export type Favourite = {
@@ -156,20 +165,44 @@ export function getMe() {
   return request<User>('/auth/me')
 }
 
-export function listProperties() {
-  return request<Property[]>('/properties')
+export type PropertyFilters = {
+  q?: string
+  min_price?: number
+  max_price?: number
+  sort?: 'newest' | 'price_asc' | 'price_desc'
 }
 
-export function createProperty(payload: {
-  name: string
-  description?: string
-  location: string
-  price: number
-}) {
+export function listProperties(filters: PropertyFilters = {}) {
+  const params = new URLSearchParams()
+  if (filters.q) params.set('q', filters.q)
+  if (filters.min_price !== undefined) params.set('min_price', String(filters.min_price))
+  if (filters.max_price !== undefined) params.set('max_price', String(filters.max_price))
+  if (filters.sort) params.set('sort', filters.sort)
+
+  const query = params.toString()
+  return request<Property[]>(`/properties${query ? `?${query}` : ''}`)
+}
+
+export function getProperty(propertyId: number) {
+  return request<Property>(`/properties/${propertyId}`)
+}
+
+export function createProperty(payload: PropertyInput) {
   return request<Property>('/properties', {
     method: 'POST',
     body: JSON.stringify(payload),
   })
+}
+
+export function updateProperty(propertyId: number, payload: Partial<PropertyInput>) {
+  return request<Property>(`/properties/${propertyId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function deleteProperty(propertyId: number) {
+  return request<void>(`/properties/${propertyId}`, { method: 'DELETE' })
 }
 
 export function listFavourites() {

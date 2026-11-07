@@ -2,10 +2,12 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 
 import RequireAuth from './components/RequireAuth'
+import EditPropertyPage from './pages/edit_property'
 import FavouritePage from './pages/favourite'
 import LoginPage from './pages/login'
 import NewPropertyPage from './pages/new_property'
 import PropertyPage from './pages/property'
+import PropertyDetailPage from './pages/property_detail'
 import RegisterPage from './pages/register'
 
 function App() {
@@ -31,6 +33,22 @@ function App() {
           element={
             <RequireAuth>
               <PropertyPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/properties/:propertyId"
+          element={
+            <RequireAuth>
+              <PropertyDetailPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/properties/:propertyId/edit"
+          element={
+            <RequireAuth>
+              <EditPropertyPage />
             </RequireAuth>
           }
         />
