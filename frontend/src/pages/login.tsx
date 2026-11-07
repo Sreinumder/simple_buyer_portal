@@ -22,7 +22,8 @@ export default function LoginPage() {
         try {
             await login({ email, password })
             toast.success('Logged in successfully')
-            navigate('/properties', { replace: true })
+            const from = (location.state as { from?: string } | null)?.from
+            navigate(from ?? '/properties', { replace: true })
         } catch (err) {
             const message = (err as ApiError).message
             setError(message)
