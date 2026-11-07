@@ -1,115 +1,220 @@
-# Simple Buyer Portal
+# Buyer Portal
 
-This project is a minimal full-stack implementation to understand fullstack development with:
+A full-stack real-estate portal with JWT authentication, buyer and seller roles,
+property listings, and per-user favourites.
 
-- Frontend: React + TypeScript + Vite (package manager: pnpm)
-- Backend: FastAPI + SQLAlchemy + SQLite (Python virtual environment)
+The point of the project is authorization: every favourite is scoped to the
+authenticated user, seller-only actions are enforced on the server, and the
+frontend never decides what a user is allowed to do.
 
-<!-- ## Project Goals
+## Features
 
-This app is designed to satisfy these requirements:
+- **Authentication** — register and log in with email and password; passwords
+  are hashed with bcrypt, never stored or returned in plain text.
+- **JWT access tokens** — signed with HS256 and an expiry; protected routes
+  resolve the current user from the bearer token.
+- **Buyer and seller roles** — sellers create listings and see only their own;
+  buyers browse all listings and manage favourites.
+- **Per-user favourites** — add or remove a property, list your favourites, and
+  get the favourited properties. Queries are always filtered by user ID.
+- **Validation and errors** — Pydantic request models, duplicate-email handling,
+  clear 401/403/404/409 responses, and toast feedback in the UI.
+- **Typed frontend** — React 19 + TypeScript with a shared API client, protected
+  routes, loading states, and form validation.
 
-1. User registration and login with secure password storage.
-2. Authenticated buyer dashboard.
-3. Per-user favourites list (add/remove properties).
-4. User isolation so users can only access their own favourites.
-5. Basic validation and error handling. -->
+## Stack
 
-## Prerequisites
+| Layer | Technology |
+| --- | --- |
+| Backend | FastAPI, SQLAlchemy 2, Pydantic 2, SQLite |
+| Auth | python-jose (JWT), passlib + bcrypt |
+| Frontend | React 19, TypeScript, Vite, Tailwind CSS 4 |
+| Routing / UX | React Router 7, react-hot-toast |
+| Tests | pytest, FastAPI TestClient, Ruff |
+| CI | GitHub Actions (backend tests + lint, frontend lint + build) |
 
-Before you begin, ensure these are installed on your system:
+## Architecture
 
-- **Python 3.8+** with `pip`
-- **Node.js 18+** with `npm`
-- **pnpm** (install globally: `npm install -g pnpm`)
-- **sqlite3** (usually bundled with Python/OS)
+```
+React SPA (Vite, :5173)
+   │  fetch + Authorization: Bearer <JWT>
+   ▼
+FastAPI application (/api)
+   ├── auth        register · login · me
+   ├── properties  seller-only writes · role-filtered reads
+   └── favourites  buyer-only · scoped by current user
+   ▼
+SQLAlchemy ORM ──► SQLite
+```
 
-<!-- **Verify your installation:**
+Three tables:
 
-```bash
-python3 --version   # Should be 3.8 or higher
-pip --version       # Should be present
-node --version      # Should be 18+
-npm --version       # Should be 8+
-pnpm --version      # Should be 8+
-``` -->
+- `users` — email, bcrypt hash, name, phone, role, unique email.
+- `properties` — listing fields, `created_by_id`, timestamp.
+- `favourites` — `(user_id, property_id)` with a unique constraint, timestamp.
 
-## Quick Start
+## Quick start
 
-### 1. Backend Setup
+Requirements: **Python 3.11+**, **Node 18+**, and **pnpm**.
+
+### 1. Backend
 
 ```bash
 cd backend
 python3 -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-```
-
-### 2. Start Backend Server
-
-```bash
-cd backend
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+cp .env.example .env             # set a real SECRET_KEY
 uvicorn app.main:app --reload --port 8000
 ```
 
-Backend runs at:
+- API: <http://127.0.0.1:8000>
+- Swagger UI: <http://127.0.0.1:8000/docs>
+- Health: <http://127.0.0.1:8000/api/health>
 
-- API: http://127.0.0.1:8000
-- Health check: http://127.0.0.1:8000/api/health
-- Interactive docs: http://127.0.0.1:8000/docs
+The SQLite database is created on startup at `backend/buyer_portal.db`.
 
-**Database note:** The SQLite database is automatically created on first startup at `backend/app/buyer_portal.db`. No manual setup needed.
-
-### 3. Frontend Setup (in a new terminal)
+### 2. Frontend
 
 ```bash
 cd frontend
 pnpm install
-```
-
-### 4. Start Frontend Dev Server
-
-```bash
-cd frontend
+cp .env.example .env.local       # optional; defaults to the local API
 pnpm dev
 ```
 
-Frontend runs at: http://localhost:5173
+Open <http://localhost:5173>.
 
-## Environment Variables
+### Try the flow
 
-Create `backend/.env` from `backend/.env.example` and set:
+1. Register a **seller** and create a property.
+2. Log out, register a **buyer**, and log in.
+3. Add the property to favourites and open **My favourites**.
+4. Register a second buyer and confirm they cannot see the first buyer's list.
 
-```env
-SECRET_KEY=replace-with-a-long-random-string
-ACCESS_TOKEN_EXPIRE_MINUTES=60
-DATABASE_URL=sqlite:///./buyer_portal.db
+## Configuration
+
+Backend (`backend/.env`):
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `SECRET_KEY` | `dev-only-change-me` | JWT signing key. Set a long random value. |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `60` | Access-token lifetime. |
+| `DATABASE_URL` | `sqlite:///backend/buyer_portal.db` | SQLAlchemy URL. |
+| `CORS_ORIGINS` | `http://localhost:5173,http://127.0.0.1:5173` | Allowed browser origins. |
+
+Frontend (`frontend/.env.local`):
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `VITE_API_BASE_URL` | `http://127.0.0.1:8000/api` | API base URL used by the client. |
+
+## API
+
+All routes are prefixed with `/api`.
+
+| Method | Path | Auth | Role | Description |
+| --- | --- | --- | --- | --- |
+| `GET` | `/health` | — | any | Liveness probe. |
+| `POST` | `/auth/register` | — | any | Create an account. Returns the public user. |
+| `POST` | `/auth/login` | — | any | Exchange email/password for a JWT. |
+| `GET` | `/auth/me` | Bearer | any | Current user profile. |
+| `POST` | `/properties` | Bearer | seller | Create a listing. |
+| `GET` | `/properties` | Bearer | any | Buyers see all listings; sellers see their own. |
+| `GET` | `/favourites` | Bearer | buyer | Favourite rows for the current user. |
+| `GET` | `/favourites/properties` | Bearer | buyer | Favourited property objects. |
+| `POST` | `/favourites/{property_id}` | Bearer | buyer | Add a favourite (idempotent). |
+| `DELETE` | `/favourites/{property_id}` | Bearer | buyer | Remove a favourite. |
+
+Example:
+
+```bash
+# Register and log in
+curl -X POST http://127.0.0.1:8000/api/auth/register \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Roj","email":"roj@example.com","phone_number":"9800000000","role":"buyer","password":"password123"}'
+
+TOKEN=$(curl -s -X POST http://127.0.0.1:8000/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"roj@example.com","password":"password123"}' | jq -r .access_token)
+
+curl http://127.0.0.1:8000/api/favourites -H "Authorization: Bearer $TOKEN"
 ```
 
-## Example End-to-End Flow (Target)
+## Security decisions
 
-1. Sign up with name, email, password.
-2. Login with email/password.
-3. Open dashboard.
-4. Like a property.
-5. Verify property appears in "My Favourites".
-6. Unlike property and verify removal.
+- Passwords are hashed with bcrypt; the response model exposes only public user
+  fields.
+- JWTs are signed with `SECRET_KEY` and carry an expiry. A missing, malformed, or
+  expired token is rejected.
+- Every favourites query includes `Favourite.user_id == current_user.id`, so a
+  user cannot read or delete another user's data even with a valid ID.
+- Role checks run on the server. Hiding a button in React is a UX choice, not a
+  security boundary.
+- A unique constraint on `(user_id, property_id)` keeps duplicate favourites out,
+  and the add endpoint is idempotent.
+- The duplicate-email race is caught as a database constraint violation and
+  returned as `409`, not a `500`.
 
-## Checklist for secure Fullstack Product
+**Demo shortcut:** users choose their own role at registration. A real product
+would verify sellers and provision roles server-side.
 
-1. Registration works and prevents duplicate email.
-2. Login returns token/session and rejects wrong password.
-3. Dashboard shows user name and role.
-4. Favourites can be added/removed.
-5. User A cannot access User B favourites.
-6. Error messages are readable and actionable.
-7. README includes run instructions and sample flow.
+## Tests
 
-<!--
-## Notes
+Backend — 20 API tests, isolated SQLite file, no running server needed:
 
-- Do not store raw passwords.
-- Use hashed passwords (`passlib` + `bcrypt`).
-- Keep auth checks on server side (frontend checks alone are not enough).
-- Scope all favourites queries by authenticated user id. -->
+```bash
+cd backend
+pip install -r requirements-dev.txt
+pytest
+ruff check .
+```
+
+Covered: registration validation, password hashing, duplicate emails, login
+failures, JWT-protected routes, seller-only creation, buyer/seller visibility,
+favourites CRUD, idempotent adds, and cross-user isolation.
+
+Frontend:
+
+```bash
+cd frontend
+pnpm lint
+pnpm build
+```
+
+## Project layout
+
+```
+backend/
+  app/
+    api/          auth, properties, favourites, router
+    config.py     .env loading and settings
+    database.py   engine, session, declarative base
+    main.py       FastAPI app, CORS, lifespan
+    models.py     users, properties, favourites
+    schemas.py    request/response models
+    security.py   bcrypt and JWT helpers
+  tests/          API tests and fixtures
+  requirements*.txt
+frontend/
+  src/
+    components/   RequireAuth
+    lib/          typed API client and token storage
+    pages/        login, register, properties, favourites, new property
+```
+
+## What I'd do next
+
+- Move to PostgreSQL with Alembic migrations.
+- Replace long-lived bearer tokens with short-lived access tokens plus refresh
+  tokens in `HttpOnly` cookies.
+- Add property images, search, filtering, and pagination.
+- Add seller verification and an admin approval step.
+- Rate-limit login/registration and add account lockout.
+- Add frontend component tests (Vitest + Testing Library) and a Playwright
+  end-to-end flow.
+- Containerize both services with Docker Compose.
+
+## License
+
+MIT — see [`LICENSE`](LICENSE).
