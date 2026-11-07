@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 
 from app.database import SessionLocal
 from app.models import User
+from app.security import create_access_token
 
 
 def test_health(client: TestClient) -> None:
@@ -98,4 +99,16 @@ def test_me_rejects_invalid_token(client: TestClient) -> None:
         "/api/auth/me",
         headers={"Authorization": "Bearer not-a-real-token"},
     )
+    assert response.status_code == 401
+
+
+def test_me_rejects_expired_token(client: TestClient, register_user) -> None:
+    register_user(email="expired@example.com")
+
+    token = create_access_token("expired@example.com", expires_minutes=-1)
+    response = client.get(
+        "/api/auth/me",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
     assert response.status_code == 401

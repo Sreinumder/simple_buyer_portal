@@ -35,10 +35,15 @@ class Property(Base):
     description = Column(String, nullable=True)
     location = Column(String, nullable=False)
     price = Column(Float, nullable=False)
+    image_url = Column(String, nullable=True)
     created_by_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    favourites = relationship("Favourite", back_populates="property")
+    favourites = relationship(
+        "Favourite",
+        back_populates="property",
+        cascade="all, delete-orphan",
+    )
     creator = relationship("User", back_populates="properties")
 
 

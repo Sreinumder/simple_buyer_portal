@@ -38,6 +38,15 @@ class PropertyCreateRequest(BaseModel):
     description: str | None = Field(default=None, max_length=2000)
     location: str = Field(min_length=2, max_length=255)
     price: float = Field(gt=0)
+    image_url: str | None = Field(default=None, max_length=500, pattern=r"^https?://")
+
+
+class PropertyUpdateRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=2, max_length=200)
+    description: str | None = Field(default=None, max_length=2000)
+    location: str | None = Field(default=None, min_length=2, max_length=255)
+    price: float | None = Field(default=None, gt=0)
+    image_url: str | None = Field(default=None, max_length=500, pattern=r"^https?://")
 
 
 class PropertyOut(BaseModel):
@@ -48,6 +57,7 @@ class PropertyOut(BaseModel):
     description: str | None
     location: str
     price: float
+    image_url: str | None
     created_by_id: int
     created_at: datetime
 
