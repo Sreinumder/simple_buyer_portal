@@ -27,7 +27,7 @@ the security boundary.
 
 ## Running it
 
-You need Python 3.11+, Node 18+, and pnpm.
+You need Python 3.11+, Node 20.19+ (or 22.12+), and pnpm.
 
 Backend:
 
